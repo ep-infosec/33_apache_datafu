@@ -1,0 +1,134 @@
+/*
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
+ */
+
+buildscript {
+  repositories {
+    mavenCentral()
+  }
+
+  apply from: file('gradle/buildscript.gradle'), to: buildscript
+}
+
+allprojects {
+  repositories {
+    mavenCentral()
+  }
+
+  // by default append "-SNAPSHOT" to all versions, unless explicitly overriden
+  beforeEvaluate { project ->
+    if (!ext.release.toBoolean()) {
+      project.version += "-SNAPSHOT"
+    }
+  }
+}
+
+apply from: file("gradle/dependency-versions.gradle")
+apply from: file("gradle/release.gradle")
+apply from: file("gradle/rat.gradle")
+
+// make the rat task run automatically along with the assemble tasks
+allprojects{
+  tasks.assemble.dependsOn ':rat'
+}
+
+rat {
+  excludes = [
+    '**/.git/**',
+    '**/.gradle/**',
+    '**/.project',
+    '**/.factorypath',
+    '**/.settings/**',
+    '**/.classpath',
+    '**/*.iml',
+    '**/*.iws',
+    '**/*.ipr',
+    '**/.idea/**',
+    '**/.rubyversion',
+    'gradle/wrapper/**',
+    '.reviewboardrc',
+    'gradlew',
+    'gradlew.bat',
+    '**/changes.md',
+    '**/README.md',
+    '**/.ruby-version',
+    'CONTRIBUTORS',
+    'RELEASE.md',
+    '**/.DS_Store/**',
+    '**/.gitignore',
+    '**/build/**',
+    '**/target/**',
+    '**/bin/**',
+    '**/test-output/**',
+    '**/Gemfile.lock',
+    '**/*.tsv',
+    '**/*.csv',
+    '**/*.svg',
+    '**/package-list',
+    '**/jquery-2.0.3.min.js', // see LICENSE
+    'site/source/stylesheets/normalize.css', // see LICENSE
+    // build-plugin files in the Public Domain - see the LICENSE file
+    'build-plugin/**/EcjMultilineProcessor.java',
+    'build-plugin/**/JavacMultilineProcessor.java',
+    'build-plugin/**/Multiline.java',
+    'build-plugin/**/MultilineProcessor.java',
+    'build-plugin/**/javax.annotation.processing.Processor',
+    // test data
+    'datafu-hourglass/data/**',
+    'datafu-pig/input*',
+    'datafu-pig/docs',
+    'datafu-pig/queries',
+    'datafu-pig/query',
+    'datafu-spark/metastore_db/**',
+    'datafu-spark/spark-warehouse/**',
+    'datafu-spark/derby.log',
+    'datafu-spark/data/**',
+    '.github/**/*'
+  ]
+}
+
+apply plugin: 'com.fizzpod.sweeney'
+
+def isRelease = ext.release.toBoolean()
+
+sweeney {
+  // Make sure official releases are built with Java version 1.8.
+  if (isRelease) {
+    enforce type: "equal", expect: "1.8", value: {System.getProperty('java.version').substring(0,3)}
+  }
+  // Otherwise required at least Java version 1.8
+  else {
+    enforce type: "range", expect: "[1.8,)", value: {System.getProperty('java.version')}
+  }
+
+  // Ensure the assemble tasks depend on the rat task
+  def flag = true
+  project.allprojects.tasks.each{taskset->
+    taskset.each{task->
+      if(task.name.equals("assemble")){
+        flag = flag && task.getTaskDependencies().getDependencies().contains(tasks.rat)
+      }
+    }
+  }
+  enforce type: "bool", value: {flag}
+}
+
+allprojects {
+  apply plugin: 'eclipse'
+  apply plugin: 'idea'
+}

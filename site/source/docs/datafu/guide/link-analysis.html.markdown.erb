@@ -1,0 +1,49 @@
+---
+title: Link Analysis - Guide - Apache DataFu Pig
+version: 1.6.1
+section_name: Apache DataFu Pig - Guide
+license: >
+   Licensed to the Apache Software Foundation (ASF) under one or more
+   contributor license agreements.  See the NOTICE file distributed with
+   this work for additional information regarding copyright ownership.
+   The ASF licenses this file to You under the Apache License, Version 2.0
+   (the "License"); you may not use this file except in compliance with
+   the License.  You may obtain a copy of the License at
+
+       http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.
+---
+
+## Link Analysis
+
+### PageRank
+
+Run PageRank on a large number of independent graphs through the [PageRank UDF](https://datafu.apache.org/docs/datafu/<%= current_page.data.version %>/datafu/pig/linkanalysis/PageRank.html):
+
+```pig
+define PageRank datafu.pig.linkanalysis.PageRank('dangling_nodes','true');
+
+topic_edges = LOAD 'input_edges' as (topic:INT,source:INT,dest:INT,weight:DOUBLE);
+
+topic_edges_grouped = GROUP topic_edges by (topic, source) ;
+topic_edges_grouped = FOREACH topic_edges_grouped GENERATE
+  group.topic as topic,
+  group.source as source,
+  topic_edges.(dest,weight) as edges;
+
+topic_edges_grouped_by_topic = GROUP topic_edges_grouped BY topic;
+
+topic_ranks = FOREACH topic_edges_grouped_by_topic GENERATE
+  group as topic,
+  FLATTEN(PageRank(topic_edges_grouped.(source,edges))) as (source,pr);
+
+skill_ranks = FOREACH skill_ranks GENERATE
+  topic, source, pr;
+```
+
+This implementation stores the nodes and edges (mostly) in memory. It is therefore best suited when one needs to compute PageRank on many reasonably sized graphs in parallel.

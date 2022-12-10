@@ -1,0 +1,67 @@
+---
+title: Apache DataFu
+license: >
+   Licensed to the Apache Software Foundation (ASF) under one or more
+   contributor license agreements.  See the NOTICE file distributed with
+   this work for additional information regarding copyright ownership.
+   The ASF licenses this file to You under the Apache License, Version 2.0
+   (the "License"); you may not use this file except in compliance with
+   the License.  You may obtain a copy of the License at
+
+       http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.
+---
+
+# Apache DataFu
+
+Apache DataFu&trade; is a collection of libraries for working with large-scale data in Hadoop.
+The project was inspired by the need for stable, well-tested libraries for data mining and statistics.
+
+It consists of three libraries:
+
+* **Apache DataFu Spark**: a collection of utils and user-defined functions for [Apache Spark](http://spark.apache.org/)
+* **Apache DataFu Pig**: a collection of user-defined functions and macros for [Apache Pig](http://pig.apache.org/)
+* **Apache DataFu Hourglass**: an incremental processing framework for [Apache Hadoop](http://hadoop.apache.org/) in MapReduce
+
+To begin using it, see our [Download](/docs/download.html) page.  If you'd like to help contribute, see [Contributing](/community/contributing.html).
+
+## About the Project
+
+### Apache DataFu Spark
+
+Apache DataFu Spark is a collection of utils and user-defined functions for [Apache Spark](http://spark.apache.org/).
+This library is based on an internal PayPal project and was open sourced in 2019. It has been used by production workflows at PayPal since 2017.
+All of the codes is unit tested to ensure quality.
+
+Check out the [Getting Started](/docs/spark/getting-started.html) guide to learn more.
+
+### Apache DataFu Pig
+
+Apache DataFu Pig is a collection of useful user-defined functions for data analysis in [Apache Pig](http://pig.apache.org/).
+This library was open sourced in 2010 and continues to receive contributions, having reached 1.0
+in September, 2013.  It has been used by production workflows at LinkedIn since 2010.
+It is also included in Cloudera's [CDH](http://www.cloudera.com/content/cloudera/en/products-and-services/cdh.html)
+and [Apache Bigtop](http://bigtop.apache.org/).  All of the UDFs are unit tested to ensure quality.
+
+Check out the [Getting Started](/docs/datafu/getting-started.html) guide to learn more.
+
+### Apache DataFu Hourglass
+
+Apache DataFu Hourglass is a library for incrementally processing data using Hadoop MapReduce.
+This library was inspired by the prevalance of sliding window computations over daily tracking
+data at LinkedIn.  Computations such as these typically happen at regular intervals (e.g. daily, weekly),
+and therefore the sliding nature of the computations means that much of the work is unnecessarily repeated.
+DataFu's Hourglass was created to make these computations more efficient, yielding sometimes 50-95% reductions
+in computational resources.
+
+Work on this library began in early 2013, which led to a
+[paper](http://www.slideshare.net/matthewterencehayes/hourglass-27038297)
+[presented](http://www.slideshare.net/matthewterencehayes/hourglass-a-library-for-incremental-processing-on-hadoop)
+at [IEEE BigData 2013](http://cci.drexel.edu/bigdata/bigdata2013/).  It is currently in production use at LinkedIn.
+
+Check out the [Getting Started](/docs/hourglass/getting-started.html) guide to learn more.

@@ -1,0 +1,120 @@
+---
+title: Download - Apache DataFu
+section_name: Getting Started
+version: 1.6.1
+license: >
+   Licensed to the Apache Software Foundation (ASF) under one or more
+   contributor license agreements.  See the NOTICE file distributed with
+   this work for additional information regarding copyright ownership.
+   The ASF licenses this file to You under the Apache License, Version 2.0
+   (the "License"); you may not use this file except in compliance with
+   the License.  You may obtain a copy of the License at
+
+       http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.
+---
+
+# Download
+
+Apache DataFu is available for download as a source release and as compiled artifacts stored in a Maven repository.
+
+## Source Releases
+
+The latest source release can be found here:
+
+* <%= current_source_release_link(current_page.data.version) %>
+
+Previous releases:
+
+* <%= archived_source_release_link("1.6.0") %>
+
+### Validation
+
+It is important to validate the release using either the PGP signature (`.asc` file) or hashes (`.md5` or `.sha512` files).  For more information on verification of Apache releases, see [here](https://www.apache.org/info/verification.html).  The `KEYS` file can be found [here](https://www.apache.org/dist/datafu/KEYS).
+
+Once fetched, the `KEYS` file can be imported and the `.asc` file can used to verify the release.
+
+```
+gpg --import KEYS
+gpg --verify apache-datafu-sources-<%= current_page.data.version %>.tgz.asc apache-datafu-sources-<%= current_page.data.version %>.tgz
+```
+
+The `sha512sum` tool can be used to compute a SHA-512 hash that can be compared against the `.sha512` file:
+
+```
+sha512sum apache-datafu-sources-<%= current_page.data.version %>.tgz
+cat apache-datafu-sources-<%= current_page.data.version %>.tgz.sha512
+```
+
+Note that the hashes are only intended to check that the file has been downloaded correctly.  They do not provide guarantees on the authenticity of the file.  The signature should instead be used for this purpose.  For more information see [here](https://www.apache.org/info/verification.html).
+
+### Setup
+
+Make sure you have [Gradle](http://gradle.org/gradle-download/) installed.  Extract the source and bootstrap the `gradlew` script that's used for building.  The `gradlew` script uses the specific version of Gradle that DataFu is intended to be built with.
+
+    tar xvf apache-datafu-sources-<%= current_page.data.version %>.tgz
+    cd apache-datafu-sources-<%= current_page.data.version %>
+    gradle -b bootstrap.gradle
+
+To build the JARs, run:
+
+    ./gradlew assemble
+
+This will produce JARs in the following directories:
+
+* `datafu-spark/build/libs`
+* `datafu-pig/build/libs`
+* `datafu-hourglass/build/libs`
+
+## Local Maven Install
+
+DataFu artifacts can be installed to your local maven repository like so:
+
+    ./gradlew install
+
+Assuming your local maven repository is at `~/.m2`, you should see the DataFu artifacts under `~/.m2/repository/org/apache/datafu/`.  You should now be able to declare a dependency on DataFu artifacts as shown below.
+
+## Maven
+
+The latest release can be found in [Apache's Maven Repository for DataFu](https://repository.apache.org/content/groups/public/org/apache/datafu):
+
+* [datafu-spark_2.11-<%= current_page.data.version %>](https://repository.apache.org/content/groups/public/org/apache/datafu/datafu-spark_2.11/<%= current_page.data.version %>/)
+* [datafu-pig-<%= current_page.data.version %>](https://repository.apache.org/content/groups/public/org/apache/datafu/datafu-pig/<%= current_page.data.version %>/)
+* [datafu-hourglass-<%= current_page.data.version %>](https://repository.apache.org/content/groups/public/org/apache/datafu/datafu-hourglass/<%= current_page.data.version %>/)
+
+You can also use a dependency management system to download the DataFu artifacts and all their dependencies.  Some examples appear below.
+
+SBT:
+
+```scala
+libraryDependencies += "org.apache.datafu" %%  "datafu-spark" % "1.6.1" intransitive
+```
+
+Gradle:
+
+```groovy
+compile "org.apache.datafu:datafu-pig:<%= current_page.data.version %>"
+```
+
+Maven:
+
+```xml
+<dependency>
+  <groupId>org.apache.datafu</groupId>
+  <artifactId>datafu-pig</artifactId>
+  <version><%= current_page.data.version %></version>
+</dependency>
+```
+
+## Next Steps
+
+See the following guides for next steps:
+
+* [Getting started with DataFu for Spark](/docs/spark/getting-started.html)
+* [Getting started with DataFu for Pig](/docs/datafu/getting-started.html)
+* [Getting started with DataFu Hourglass](/docs/hourglass/getting-started.html)

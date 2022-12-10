@@ -1,0 +1,46 @@
+<%#
+# Licensed to the Apache Software Foundation (ASF) under one
+# or more contributor license agreements.  See the NOTICE file
+# distributed with this work for additional information
+# regarding copyright ownership.  The ASF licenses this file
+# to you under the Apache License, Version 2.0 (the
+# "License"); you may not use this file except in compliance
+# with the License.  You may obtain a copy of the License at
+#
+#   http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing,
+# software distributed under the License is distributed on an
+# "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+# KIND, either express or implied.  See the License for the
+# specific language governing permissions and limitations
+# under the License.
+%>
+
+<% content_for :meta_tags do %>
+  <meta name="twitter:card" content="summary" />
+  <meta name="twitter:site" content="@apachedatafu" />
+  <meta name="twitter:title" content="<%= current_article.title %>" />
+  <meta name="twitter:description" content="<%= inner_text current_article.summary %>" />
+  <meta property="og:url" content="http://datafu.apache.org<%= current_page.url %>" />
+  <meta property="og:type" content="article" />
+  <meta property="og:title" content="<%= current_article.title %>" />
+  <meta property="og:description" content="<%= inner_text current_article.summary %>" />
+<% end %>
+
+<% wrap_layout :layout do %>
+<div class="row">
+  <article class="col-lg-10">
+    <h1><%= current_article.title %></h1>
+    <h5 class="text-muted"><time><%= current_article.date.strftime('%b %e, %Y') %></time></h5>
+    <% if current_page.data.author %>
+      <h5 class="text-muted"><%= current_page.data.author %></h5>
+    <% end %>
+
+    <hr>
+
+    <%= yield %>
+
+  </article>
+</div>
+<% end %>

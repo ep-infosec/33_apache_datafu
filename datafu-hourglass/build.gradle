@@ -1,0 +1,193 @@
+/*
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
+ */
+
+apply plugin: 'java'
+
+archivesBaseName = 'datafu-hourglass'
+
+import groovy.xml.MarkupBuilder
+
+buildscript {
+  repositories {
+      mavenCentral()
+  }
+  dependencies {
+  }
+}
+
+// Core dependencies are those that we explicitly depend on and are not picked up as transitive dependencies of Hadoop.
+configurations.create('core')
+configurations.create('testCore')
+
+// Hadoop dependencies are those that we need for compile time but are provided by Hadoop when jobs are submitted.
+configurations.create('hadoop')
+
+// Dependencies needed in order to run the demo against Hadoop.
+configurations.create('demoRuntime')
+
+configurations {
+  // compile is split into core and hadoop configurations
+  compile {
+    extendsFrom core, hadoop
+  }
+
+  testCompile {
+    extendsFrom compile, testCore
+  }
+
+  // hadoopRuntime is an alternative to runtime that excludes all the hadoop jars (in the hadoop configuration) and
+  // their transitive dependencies.
+  demoRuntime {
+    extendsFrom core, testCore
+  }
+}
+
+cleanEclipse {
+  doLast {
+    delete ".apt_generated"
+    delete ".settings"
+    delete ".factorypath"
+    delete "bin"
+  }
+}
+
+task testJar(type: Jar) {
+  classifier = 'tests'
+  from sourceSets.test.output
+}
+
+def demoDependenciesDir = new File("$buildDir/demo_dependencies")
+
+task replace_demo_dependencies_dir() {
+  doLast {
+    println "Creating $demoDependenciesDir"
+
+    if (demoDependenciesDir.exists()) {
+      demoDependenciesDir.deleteDir()
+    }
+    demoDependenciesDir.mkdirs()
+  }
+}
+
+task copyDemoDependencies(type: Copy, dependsOn: replace_demo_dependencies_dir) {
+    from configurations.demoRuntime
+    into demoDependenciesDir
+    def copyDetails = []
+    eachFile { copyDetails << it }
+    doLast {
+      copyDetails.each { FileCopyDetails details ->
+        def target = new File(demoDependenciesDir, details.path)
+        if(target.exists()) {
+          target.setLastModified(details.lastModified)
+        }
+      }
+    }
+}
+
+dependencies {
+  // core dependencies, listed as dependencies in pom
+  core "log4j:log4j:$log4jVersion"
+  core "com.googlecode.json-simple:json-simple:$jsonVersion"
+  core "org.apache.avro:avro:$avroVersion"
+  core "org.apache.avro:avro-compiler:$avroVersion"
+  core "org.apache.commons:commons-math:$commonsMathVersion"
+
+  // needed for testing, not listed as a dependencies in pom
+  testCore "com.clearspring.analytics:stream:$streamVersion"
+  testCompile "commons-io:commons-io:$commonsIoVersion"
+  testCompile "javax.ws.rs:jsr311-api:$jsr311Version"
+  testCompile "org.slf4j:slf4j-log4j12:$slf4jVersion"
+  testCompile "org.testng:testng:$testngVersion"
+
+  // only needed for running the demo
+  demoRuntime "org.apache.avro:avro-tools:$avroVersion"
+}
+
+if (hadoopVersion.startsWith("2.") || hadoopVersion.startsWith("0.23.")) {
+  dependencies {
+    // core dependencies, listed as dependencies in pom
+    core "org.apache.avro:avro-mapred:$avroVersion:hadoop2"
+
+    // needed for compilation and testing, not listed as a dependencies in pom
+    hadoop "org.apache.hadoop:hadoop-common:$hadoopVersion"
+    hadoop "org.apache.hadoop:hadoop-hdfs:$hadoopVersion"
+    hadoop "org.apache.hadoop:hadoop-mapreduce-client-jobclient:$hadoopVersion"
+    hadoop "org.apache.hadoop:hadoop-archives:$hadoopVersion"
+    hadoop "org.apache.hadoop:hadoop-auth:$hadoopVersion"
+    hadoop "org.apache.hadoop:hadoop-mapreduce-client-core:$hadoopVersion"
+
+    // needed for testing, not listed as a dependencies in pom
+    testCompile "org.apache.hadoop:hadoop-minicluster:$hadoopVersion"
+  }
+} else {
+  dependencies {
+    // core dependencies, listed as dependencies in pom
+    core "org.apache.avro:avro-mapred:$avroVersion"
+
+    // needed for compilation and testing, not listed as a dependencies in pom
+    hadoop "org.apache.hadoop:hadoop-core:$hadoopVersion"
+    hadoop "org.apache.hadoop:hadoop-tools:$hadoopVersion"
+
+    // needed for testing, not listed as a dependencies in pom
+    testCompile "org.apache.hadoop:hadoop-test:$hadoopVersion"
+  }
+}
+
+
+// modify the pom dependencies so we don't include hadoop and the testing related artifacts
+modifyPom {
+  project {
+    dependencies {
+      dependency {
+        groupId 'log4j'
+        artifactId 'log4j'
+        version "$log4jVersion"
+      }
+      dependency {
+        groupId 'com.googlecode.json-simple'
+        artifactId 'json-simple'
+        version "$jsonVersion"
+      }
+      dependency {
+        groupId 'org.apache.avro'
+        artifactId 'avro'
+        version "$avroVersion"
+      }
+      dependency {
+        groupId 'org.apache.avro'
+        artifactId 'avro-mapred'
+        version "$avroVersion"
+      }
+      dependency {
+        groupId 'org.apache.avro'
+        artifactId 'avro-compiler'
+        version "$avroVersion"
+      }
+    }
+  }
+}
+
+test {
+  // enable TestNG support (default is JUnit)
+  useTestNG()
+
+  systemProperty 'hourglass.data.dir', file('data')
+
+  maxHeapSize = "2G"
+}
